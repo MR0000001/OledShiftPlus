@@ -1,0 +1,7 @@
+# Ignora tutte le cartelle e sotto-cartelle
+OledShiftPlus/*/
+.vs
+packages
+
+# Eccetto i file .gitkeep, se necessario
+!.gitkeep
