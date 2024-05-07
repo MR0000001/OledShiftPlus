@@ -2,8 +2,10 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OledShiftPlus
 {
@@ -25,6 +27,9 @@ namespace OledShiftPlus
 
         [DllImport("user32.dll")]
         private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
         [DllImport("user32.dll")]
         private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
@@ -48,13 +53,18 @@ namespace OledShiftPlus
         private void timer1_Tick(object sender, EventArgs e)
         {
             overlayForm.ReloadOverlay(overlay);
+            overlayForm.Setpx(GetMovepx(textBox3.Text));
+            overlayForm.Setratio(GetMovepx(textBox4.Text), GetMovepx(textBox5.Text));
             MoveAllWindows(GetMovepx(textBox2.Text), overlayForm);
         }
+
+        
 
         public static void MoveAllWindows(int movepx, OverlayForm overlayForm)
         {
             IntPtr hWnd = IntPtr.Zero;
             IntPtr hWndOVL = overlayForm.Handle;
+            string[] ignoredWindows = { "PowerToys", "Universal x86 Tuning Utilit", "Default IME", "DDE Server Window", "TouchPad", "MediaContextNotificationWindow", "PToyTrayIconWindow", "AMD:", "DDMExtensio", "OledShiftPlus", "DWM Notification Window" };
 
             while ((hWnd = Form1.FindWindowEx(IntPtr.Zero, hWnd, null, null)) != IntPtr.Zero)
             {
@@ -64,6 +74,16 @@ namespace OledShiftPlus
 
                 if (!Form1.IsWindowMaximized(hWnd))
                 {
+                    StringBuilder windowText = new StringBuilder(256);
+                    GetWindowText(hWnd, windowText, 256);
+                    //Console.WriteLine(windowText.ToString());
+                    string windowName = windowText.ToString();
+                    if (Array.Exists(ignoredWindows, windowkeyname => windowName.Contains(windowkeyname)))
+                    {
+                        continue;
+                    }
+                        
+
                     Form1.RECT rect;
                     if (Form1.GetWindowRect(hWnd, out rect))
                     {
@@ -133,6 +153,8 @@ namespace OledShiftPlus
         private void button1_Click(object sender, EventArgs e)
         {
             overlayForm.ReloadOverlay(overlay);
+            overlayForm.Setpx(GetMovepx(textBox3.Text));
+            overlayForm.Setratio(GetMovepx(textBox4.Text), GetMovepx(textBox5.Text));
             MoveAllWindows(GetMovepx(textBox2.Text), overlayForm);
         }
 
@@ -160,6 +182,9 @@ namespace OledShiftPlus
             // Applica le impostazioni ai controlli del form
             textBox1.Text = settings.IntervalInSeconds.ToString();
             textBox2.Text = settings.MovePixels.ToString();
+            textBox3.Text = settings.pblacksize.ToString();
+            textBox4.Text = settings.ptotal.ToString();
+            textBox5.Text = settings.pwhite.ToString();
             auto = settings.AutoMode;
             overlay = settings.OverlayEnabled;
             if (auto)
@@ -189,6 +214,9 @@ namespace OledShiftPlus
             // Salva le impostazioni
             settings.IntervalInSeconds = int.Parse(textBox1.Text);
             settings.MovePixels = int.Parse(textBox2.Text);
+            settings.pblacksize = int.Parse(textBox3.Text);
+            settings.ptotal = int.Parse(textBox4.Text);
+            settings.pwhite = int.Parse(textBox5.Text);
             settings.AutoMode = auto;
             settings.OverlayEnabled = overlay;
             settings.Save(settingsFilePath);
@@ -258,6 +286,10 @@ namespace OledShiftPlus
         private const int WS_EX_NOACTIVATE = 0x8000000;
         private const int GWL_EXSTYLE = -20;
 
+        int blackpx = 2;
+        int ptotal = 101;
+        int pwhite = 100;
+
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
@@ -303,11 +335,22 @@ namespace OledShiftPlus
             }
         }
 
+        public void Setpx(int px)
+        {
+            blackpx = px;
+        }
+
+        public void Setratio(int total, int white)
+        {
+            ptotal = total;
+            pwhite = white;
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
 
-            int cellSize = 2; // Dimensione di ogni cella dello scacchiere
+            int cellSize = blackpx; // Dimensione di ogni cella dello scacchiere
             Random random = new Random(); // Generatore di numeri casuali
 
             for (int x = 0; x < ClientSize.Width; x += cellSize)
@@ -316,7 +359,7 @@ namespace OledShiftPlus
                 {
                     // Decide casualmente se la cella deve essere bianca o nera
                     // Utilizziamo un rapporto di 5:1 per i rettangoli bianchi
-                    bool isBlack = random.Next(101) < 100; // 100 probabilità su 101 di essere bianco
+                    bool isBlack = random.Next(ptotal) < pwhite; // 100 probabilità su 101 di essere bianco
 
                     // Imposta il colore in base alla decisione casuale
                     Color cellColor = isBlack ? Color.Black : Color.White;
@@ -341,6 +384,9 @@ namespace OledShiftPlus
     {
         public int IntervalInSeconds { get; set; }
         public int MovePixels { get; set; }
+        public int pblacksize { get; set; }
+        public int ptotal { get; set; }
+        public int pwhite { get; set; }
         public bool AutoMode { get; set; }
         public bool OverlayEnabled { get; set; }
 

@@ -41,6 +41,10 @@ namespace OledShiftPlus
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.button3 = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.textBox4 = new System.Windows.Forms.TextBox();
+            this.textBox5 = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // button1
@@ -111,10 +115,47 @@ namespace OledShiftPlus
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(305, 50);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(21, 16);
+            this.label3.TabIndex = 8;
+            this.label3.Text = "px";
+            // 
+            // textBox3
+            // 
+            this.textBox3.Location = new System.Drawing.Point(261, 47);
+            this.textBox3.Name = "textBox3";
+            this.textBox3.Size = new System.Drawing.Size(38, 22);
+            this.textBox3.TabIndex = 7;
+            this.textBox3.Text = "20";
+            // 
+            // textBox4
+            // 
+            this.textBox4.Location = new System.Drawing.Point(112, 79);
+            this.textBox4.Name = "textBox4";
+            this.textBox4.Size = new System.Drawing.Size(38, 22);
+            this.textBox4.TabIndex = 9;
+            this.textBox4.Text = "101";
+            // 
+            // textBox5
+            // 
+            this.textBox5.Location = new System.Drawing.Point(169, 79);
+            this.textBox5.Name = "textBox5";
+            this.textBox5.Size = new System.Drawing.Size(38, 22);
+            this.textBox5.TabIndex = 10;
+            this.textBox5.Text = "100";
+            // 
             // Form1
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(378, 89);
+            this.ClientSize = new System.Drawing.Size(370, 109);
+            this.Controls.Add(this.textBox5);
+            this.Controls.Add(this.textBox4);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.textBox3);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBox2);
@@ -142,5 +183,9 @@ namespace OledShiftPlus
         private TextBox textBox2;
         private System.Windows.Forms.Timer timer1;
         private Button button3;
+        private Label label3;
+        private TextBox textBox3;
+        private TextBox textBox4;
+        private TextBox textBox5;
     }
 }
