@@ -78,7 +78,7 @@ namespace OledShiftPlus
 
             while ((hWnd = Form1.FindWindowEx(IntPtr.Zero, hWnd, null, null)) != IntPtr.Zero)
             {
-                // Controlla se la finestra � l'overlay, se lo �, passa alla prossima iterazione
+                // Controlla se la finestra è l'overlay, se lo è, passa alla prossima iterazione
                 if (hWnd == hWndOVL)
                     continue;
 
@@ -104,10 +104,10 @@ namespace OledShiftPlus
 
                     if (Array.Exists(ignoredWindows, windowkeyname => process.ProcessName.Contains(windowkeyname)))
                     {
-                       continue;
+                        continue;
                     }
 
-                        Form1.RECT rect;
+                    Form1.RECT rect;
                     if (GetWindowRect(hWnd, out rect)) // Ottieni il rettangolo della finestra hWnd
                     {
                         Random rand = new Random();
@@ -115,39 +115,19 @@ namespace OledShiftPlus
                         // Ottieni le dimensioni dello schermo
                         Rectangle screenBounds = Screen.GetBounds(Point.Empty);
 
-                        int offsetX = rand.Next(-movepx, movepx + 1);
-                        // Controlla se la finestra � posizionata troppo a destra o sinistra
-                        int trys = 0;
-                        while (offsetX < screenBounds.Left || offsetX > screenBounds.Right)
-                        {
-                            offsetX = rand.Next(-movepx, movepx + 1);
-                            trys++;
-                            if (trys > 4)
-                            {
-                                break;
-                            }
-                        }
+                        // Calcola la nuova posizione in modo casuale all'interno dei limiti dello schermo
+                        int newLeft = rect.Left + rand.Next(-movepx, movepx + 1);
+                        int newTop = rect.Top + rand.Next(-movepx, movepx + 1);
 
+                        // Assicurati che la finestra rimanga all'interno dello schermo
+                        newLeft = Math.Max(screenBounds.Left, Math.Min(newLeft, screenBounds.Right - (rect.Right - rect.Left)));
+                        newTop = Math.Max(screenBounds.Top, Math.Min(newTop, screenBounds.Bottom - (rect.Bottom - rect.Top)));
 
-                        int offsetY = rand.Next(-movepx, movepx + 1);
-                        // Controlla se la finestra � posizionata troppo in alto
-                        trys = 0;
-                        while (offsetY < screenBounds.Top)
-                        {
-                            offsetY = rand.Next(-movepx, movepx + 1);
-                            trys++;
-                            if (trys > 4)
-                            {
-                                offsetY = screenBounds.Top - rect.Top;
-                                break;
-                            }
-                        }
-
-
-                        Form1.SetWindowPos(hWnd, IntPtr.Zero, rect.Left + offsetX, rect.Top + offsetY, rect.Right - rect.Left, rect.Bottom - rect.Top, Form1.SWP_ASYNCWINDOWPOS | Form1.SWP_NOZORDER | Form1.SWP_NOACTIVATE);
+                        Form1.SetWindowPos(hWnd, IntPtr.Zero, newLeft, newTop, rect.Right - rect.Left, rect.Bottom - rect.Top, Form1.SWP_ASYNCWINDOWPOS | Form1.SWP_NOZORDER | Form1.SWP_NOACTIVATE);
                     }
                 }
             }
+
 
             if (writeoncewindowslog)
             {
