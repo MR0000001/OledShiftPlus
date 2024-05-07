@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -31,6 +33,9 @@ namespace OledShiftPlus
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
         [DllImport("user32.dll")]
         private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
 
@@ -49,62 +54,108 @@ namespace OledShiftPlus
             public int Bottom;
         }
         Boolean auto = true;
+        bool writeoncewindowslog = true;
+
         // Codice esistente per il timer
         private void timer1_Tick(object sender, EventArgs e)
         {
             overlayForm.ReloadOverlay(overlay);
             overlayForm.Setpx(GetMovepx(textBox3.Text));
             overlayForm.Setratio(GetMovepx(textBox4.Text), GetMovepx(textBox5.Text));
-            MoveAllWindows(GetMovepx(textBox2.Text), overlayForm);
+            MoveAllWindows(GetMovepx(textBox2.Text), overlayForm, writeoncewindowslog);
+            writeoncewindowslog = false;
         }
 
-        
 
-        public static void MoveAllWindows(int movepx, OverlayForm overlayForm)
+        public static void MoveAllWindows(int movepx, OverlayForm overlayForm, bool writeoncewindowslog)
         {
             IntPtr hWnd = IntPtr.Zero;
             IntPtr hWndOVL = overlayForm.Handle;
             string[] ignoredWindows = { "PowerToys", "Universal x86 Tuning Utilit", "Default IME", "DDE Server Window", "TouchPad", "MediaContextNotificationWindow", "PToyTrayIconWindow", "AMD:", "DDMExtensio", "OledShiftPlus", "DWM Notification Window" };
 
+            // Inizializza il StringBuilder per mantenere traccia dei log
+            StringBuilder logBuilder = new StringBuilder();
+
             while ((hWnd = Form1.FindWindowEx(IntPtr.Zero, hWnd, null, null)) != IntPtr.Zero)
             {
-                // Controlla se la finestra è l'overlay, se lo è, passa alla prossima iterazione
+                // Controlla se la finestra ï¿½ l'overlay, se lo ï¿½, passa alla prossima iterazione
                 if (hWnd == hWndOVL)
                     continue;
+
+                uint processId;
+                GetWindowThreadProcessId(hWnd, out processId);
 
                 if (!Form1.IsWindowMaximized(hWnd))
                 {
                     StringBuilder windowText = new StringBuilder(256);
                     GetWindowText(hWnd, windowText, 256);
+                    // Ottenere il processo associato alla finestra
+                    Process process = Process.GetProcessById((int)processId);
+
                     //Console.WriteLine(windowText.ToString());
+                    // Aggiungi il log al StringBuilder
+                    logBuilder.AppendLine(windowText.ToString());
+
                     string windowName = windowText.ToString();
                     if (Array.Exists(ignoredWindows, windowkeyname => windowName.Contains(windowkeyname)))
                     {
                         continue;
                     }
-                        
 
-                    Form1.RECT rect;
-                    if (Form1.GetWindowRect(hWnd, out rect))
+                    if (Array.Exists(ignoredWindows, windowkeyname => process.ProcessName.Contains(windowkeyname)))
+                    {
+                       continue;
+                    }
+
+                        Form1.RECT rect;
+                    if (GetWindowRect(hWnd, out rect)) // Ottieni il rettangolo della finestra hWnd
                     {
                         Random rand = new Random();
-                        int offsetX = rand.Next(-movepx, movepx + 1);
-                        int maxOffsetY = Screen.PrimaryScreen.Bounds.Height - (rect.Bottom - rect.Top);
-                        int offsetY = rand.Next(-movepx, movepx + 1);
 
-                        if (Math.Min(movepx, maxOffsetY) + 1 > -movepx) {
-                            offsetY = rand.Next(-movepx, Math.Min(movepx, maxOffsetY) + 1);
-                        }
-                        else
+                        // Ottieni le dimensioni dello schermo
+                        Rectangle screenBounds = Screen.GetBounds(Point.Empty);
+
+                        int offsetX = rand.Next(-movepx, movepx + 1);
+                        // Controlla se la finestra ï¿½ posizionata troppo a destra o sinistra
+                        int trys = 0;
+                        while (offsetX < screenBounds.Left || offsetX > screenBounds.Right)
                         {
-                            offsetY = Math.Min(movepx, maxOffsetY) + 1;
+                            offsetX = rand.Next(-movepx, movepx + 1);
+                            trys++;
+                            if (trys > 4)
+                            {
+                                break;
+                            }
                         }
-                        
+
+
+                        int offsetY = rand.Next(-movepx, movepx + 1);
+                        // Controlla se la finestra ï¿½ posizionata troppo in alto
+                        trys = 0;
+                        while (offsetY < screenBounds.Top)
+                        {
+                            offsetY = rand.Next(-movepx, movepx + 1);
+                            trys++;
+                            if (trys > 4)
+                            {
+                                offsetY = screenBounds.Top - rect.Top;
+                                break;
+                            }
+                        }
+
 
                         Form1.SetWindowPos(hWnd, IntPtr.Zero, rect.Left + offsetX, rect.Top + offsetY, rect.Right - rect.Left, rect.Bottom - rect.Top, Form1.SWP_ASYNCWINDOWPOS | Form1.SWP_NOZORDER | Form1.SWP_NOACTIVATE);
                     }
                 }
             }
+
+            if (writeoncewindowslog)
+            {
+                writeoncewindowslog = false;
+                string logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "windows.log");
+                File.WriteAllText(logFilePath, logBuilder.ToString());
+            }
+
         }
 
 
@@ -155,7 +206,8 @@ namespace OledShiftPlus
             overlayForm.ReloadOverlay(overlay);
             overlayForm.Setpx(GetMovepx(textBox3.Text));
             overlayForm.Setratio(GetMovepx(textBox4.Text), GetMovepx(textBox5.Text));
-            MoveAllWindows(GetMovepx(textBox2.Text), overlayForm);
+            MoveAllWindows(GetMovepx(textBox2.Text), overlayForm, writeoncewindowslog);
+            writeoncewindowslog = false;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -221,7 +273,7 @@ namespace OledShiftPlus
             settings.OverlayEnabled = overlay;
             settings.Save(settingsFilePath);
         }
-        
+
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -311,7 +363,7 @@ namespace OledShiftPlus
             this.DoubleBuffered = true;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Opacity = 0.2; // Imposta l'opacità a 0.2 per mantenere il nero come colore trasparente
+            this.Opacity = 0.2; // Imposta l'opacitï¿½ a 0.2 per mantenere il nero come colore trasparente
             this.Size = Screen.PrimaryScreen.Bounds.Size;
             this.StartPosition = FormStartPosition.Manual;
             this.Location = Screen.PrimaryScreen.Bounds.Location;
@@ -359,15 +411,15 @@ namespace OledShiftPlus
                 {
                     // Decide casualmente se la cella deve essere bianca o nera
                     // Utilizziamo un rapporto di 5:1 per i rettangoli bianchi
-                    bool isBlack = random.Next(ptotal) < pwhite; // 100 probabilità su 101 di essere bianco
+                    bool isBlack = random.Next(ptotal) < pwhite; // 100 probabilitï¿½ su 101 di essere bianco
 
                     // Imposta il colore in base alla decisione casuale
                     Color cellColor = isBlack ? Color.Black : Color.White;
 
-                    // Calcola l'opacità in base al colore
-                    double opacity = isBlack ? 1.0 : 0.1; // Opacità diversa per nero e bianco
+                    // Calcola l'opacitï¿½ in base al colore
+                    double opacity = isBlack ? 1.0 : 0.1; // Opacitï¿½ diversa per nero e bianco
 
-                    // Disegna la cella con il colore scelto e l'opacità corrispondente
+                    // Disegna la cella con il colore scelto e l'opacitï¿½ corrispondente
                     using (SolidBrush brush = new SolidBrush(Color.FromArgb((int)(opacity * 255), cellColor)))
                     {
                         e.Graphics.FillRectangle(brush, x, y, cellSize, cellSize);
