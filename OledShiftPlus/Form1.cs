@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.Json;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Collections.Generic;
+using static OledShiftPlus.Form1;
 
 namespace OledShiftPlus
 {
@@ -66,9 +68,48 @@ namespace OledShiftPlus
             writeoncewindowslog = false;
         }
 
+        // Lista per memorizzare le posizioni delle finestre
+        private static List<WindowPosition> windowPositions = new List<WindowPosition>();
 
+        static bool IsHwndPresent(List<WindowPosition> windowPositions, IntPtr hWnd)
+        {
+            foreach (var windowPosition in windowPositions)
+            {
+                if (windowPosition.Handle == hWnd)
+                {
+                    return true; // hWnd già presente
+                }
+            }
+            return false; // hWnd non presente
+        }
+
+        // Contatore per tenere traccia dei movimenti consecutivi
+        private static int consecutiveMoves = 0;
+
+        // Funzione per riposizionare le finestre alle posizioni salvate
+        public static void RestoreWindowPositions()
+        {
+            foreach (WindowPosition windowPosition in Form1.windowPositions)
+            {
+                Form1.SetWindowPos(windowPosition.Handle, IntPtr.Zero, windowPosition.Left, windowPosition.Top, windowPosition.Right - windowPosition.Left, windowPosition.Bottom - windowPosition.Top, Form1.SWP_ASYNCWINDOWPOS | Form1.SWP_NOZORDER | Form1.SWP_NOACTIVATE);
+            }
+        }
+
+        // Main loop
         public static void MoveAllWindows(int movepx, OverlayForm overlayForm, bool writeoncewindowslog)
         {
+            if (Form1.consecutiveMoves >= 5)
+            {
+                //Console.WriteLine("Ripristino Posizione");
+                Form1.RestoreWindowPositions();
+                Form1.consecutiveMoves = 0;
+            }
+            else
+            {
+                Form1.consecutiveMoves++;
+            }
+            //Console.WriteLine(Form1.consecutiveMoves);
+
             IntPtr hWnd = IntPtr.Zero;
             IntPtr hWndOVL = overlayForm.Handle;
             string[] ignoredWindows = { "PowerToys", "Universal x86 Tuning Utilit", "Default IME", "DDE Server Window", "TouchPad", "MediaContextNotificationWindow", "PToyTrayIconWindow", "AMD:", "DDMExtensio", "OledShiftPlus", "DWM Notification Window" };
@@ -110,6 +151,22 @@ namespace OledShiftPlus
                     Form1.RECT rect;
                     if (GetWindowRect(hWnd, out rect)) // Ottieni il rettangolo della finestra hWnd
                     {
+
+                        bool isPresent = IsHwndPresent(windowPositions, hWnd);
+
+                        // Se non è presente, aggiungilo alla lista
+                        if (!isPresent)
+                        {
+                            windowPositions.Add(new WindowPosition
+                            {
+                                Handle = hWnd,
+                                Left = rect.Left,
+                                Right = rect.Right,
+                                Top = rect.Top,
+                                Bottom = rect.Bottom
+                            });
+                        }
+
                         Random rand = new Random();
 
                         // Ottieni le dimensioni dello schermo
@@ -309,6 +366,20 @@ namespace OledShiftPlus
         {
             SaveSettings();
         }
+
+        [DllImport("USER32.DLL")]
+        static extern bool IsWindowVisible(IntPtr hWnd);
+
+    }
+
+    // Classe per memorizzare la posizione delle finestre
+    public class WindowPosition
+    {
+        public IntPtr Handle { get; set; }
+        public int Left { get; set; }
+        public int Right { get; set; }
+        public int Top { get; set; }
+        public int Bottom { get; set; }
     }
 
 
