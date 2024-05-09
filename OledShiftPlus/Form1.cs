@@ -10,6 +10,10 @@ using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Collections.Generic;
 using static OledShiftPlus.Form1;
+using System.Globalization;
+using System.Resources;
+using System.Threading;
+using System.Reflection;
 
 namespace OledShiftPlus
 {
@@ -56,15 +60,23 @@ namespace OledShiftPlus
             public int Bottom;
         }
         Boolean auto = true;
+
         bool writeoncewindowslog = true;
 
         // Codice esistente per il timer
         private void timer1_Tick(object sender, EventArgs e)
         {
-            overlayForm.ReloadOverlay(overlay);
-            overlayForm.Setpx(GetMovepx(textBox3.Text));
-            overlayForm.Setratio(GetMovepx(textBox4.Text), GetMovepx(textBox5.Text));
-            MoveAllWindows(GetMovepx(textBox2.Text), overlayForm, writeoncewindowslog);
+            if (overlay)
+            {
+                overlayForm.ReloadOverlay(overlay);
+                overlayForm.Setpx(GetMovepx(listBox3.SelectedItem?.ToString()));
+                overlayForm.Setratio(GetMovepx(textBox4.Text), GetMovepx(textBox5.Text));
+            }
+            
+            if (auto){
+                MoveAllWindows(GetMovepx(listBox2.Text), overlayForm, writeoncewindowslog);
+            }
+            
             writeoncewindowslog = false;
         }
 
@@ -241,51 +253,121 @@ namespace OledShiftPlus
         private void button1_Click(object sender, EventArgs e)
         {
             overlayForm.ReloadOverlay(overlay);
-            overlayForm.Setpx(GetMovepx(textBox3.Text));
+            overlayForm.Setpx(GetMovepx(listBox3.SelectedItem?.ToString()));
             overlayForm.Setratio(GetMovepx(textBox4.Text), GetMovepx(textBox5.Text));
-            MoveAllWindows(GetMovepx(textBox2.Text), overlayForm, writeoncewindowslog);
+            MoveAllWindows(GetMovepx(listBox2.Text), overlayForm, writeoncewindowslog);
             writeoncewindowslog = false;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            PopolaListBox(listBox1, 120);
+            PopolaListBox(listBox2, 50);
+            PopolaListBox(listBox3, 15);
+
+            // Rileva la lingua del sistema
+            CultureInfo systemCulture = CultureInfo.CurrentCulture;
+
+            // Imposta la lingua predefinita in inglese
+            CultureInfo selectedCulture = new CultureInfo("en-US");
+
+            // Verifica se la lingua del sistema è l'italiano
+            if (systemCulture.Name.StartsWith("it"))
+            {
+                // Se la lingua del sistema è l'italiano, carica le risorse in italiano
+                selectedCulture = new CultureInfo("it-IT");
+                // Carica le risorse corrispondenti alla lingua selezionata
+                ResourceManager rm = new ResourceManager("OledShiftPlus.it_IT", Assembly.GetExecutingAssembly());
+                traduciUI(rm, selectedCulture);
+
+            }
+
+            // Imposta la cultura dell'applicazione
+            Thread.CurrentThread.CurrentUICulture = selectedCulture;
+
+
+
             settings = Settings.Load(settingsFilePath);
             ApplySettings();
 
-            int intervalInSeconds;
-            if (int.TryParse(textBox1.Text, out intervalInSeconds))
+
+            if (listBox1.SelectedItem != null)
             {
-                // Converti i secondi in millisecondi per l'intervallo del timer
-                timer1.Interval = intervalInSeconds * 1000;
-                // Avvia il timer
-                timer1.Start();
+                if (int.TryParse(listBox1.SelectedItem.ToString(), out int intervalInSeconds))
+                {
+                    // Converti i secondi in millisecondi per l'intervallo del timer
+                    timer1.Interval = intervalInSeconds * 1000;
+                    // Avvia il timer
+                    timer1.Start();
+                }
+                else
+                {
+                    MessageBox.Show("Il valore selezionato non è un numero valido di secondi.");
+                }
             }
             else
             {
-                MessageBox.Show("Inserisci un valore valido in secondi nella TextBox.");
+                MessageBox.Show("Nessun valore selezionato.");
+            }
+
+            
+        }
+
+        private void traduciUI(ResourceManager rm, CultureInfo selectedCulture)
+        {
+            button1.Text = rm.GetString("button1", selectedCulture);
+            button2.Text = rm.GetString("button2", selectedCulture);
+            label1.Text = rm.GetString("label1", selectedCulture);
+            label3.Text = rm.GetString("label3", selectedCulture);
+            label4.Text = rm.GetString("label4", selectedCulture);
+
+
+        }
+
+        private void PopolaListBox(ListBox listbox, int maxint)
+        {
+            // Pulisci la ListBox
+            listbox.Items.Clear();
+
+            // Aggiungi numeri da 1 a 100 alla ListBox
+            for (int i = 1; i <= maxint; i++)
+            {
+                listbox.Items.Add(i);
+            }
+        }
+
+        private void ApplySettingsListBoxs(ListBox listbox, string value) {
+            int index = listbox.FindStringExact(value);
+            if (index != ListBox.NoMatches)
+            {
+                listbox.SelectedIndex = index;
+            }
+            else
+            {
+                MessageBox.Show("Valore non trovato nella ListBox.");
             }
         }
 
         private void ApplySettings()
         {
             // Applica le impostazioni ai controlli del form
-            textBox1.Text = settings.IntervalInSeconds.ToString();
-            textBox2.Text = settings.MovePixels.ToString();
-            textBox3.Text = settings.pblacksize.ToString();
+            ApplySettingsListBoxs(listBox1, settings.IntervalInSeconds.ToString());
+            ApplySettingsListBoxs(listBox2, settings.MovePixels.ToString());
+            ApplySettingsListBoxs(listBox3, settings.pblacksize.ToString());
+
             textBox4.Text = settings.ptotal.ToString();
             textBox5.Text = settings.pwhite.ToString();
             auto = settings.AutoMode;
             overlay = settings.OverlayEnabled;
             if (auto)
             {
-                button2.Text = "Automatico[ON]";
-                timer1.Start();
+                button2.Text = button2.Text.Replace("[OFF]", "[ON]");
             }
             else
             {
-                button2.Text = "Automatico[OFF]";
-                timer1.Stop();
+                button2.Text = button2.Text.Replace("[ON]", "[OFF]");
             }
+
             if (overlay)
             {
                 overlayForm.Show();
@@ -301,9 +383,9 @@ namespace OledShiftPlus
         private void SaveSettings()
         {
             // Salva le impostazioni
-            settings.IntervalInSeconds = int.Parse(textBox1.Text);
-            settings.MovePixels = int.Parse(textBox2.Text);
-            settings.pblacksize = int.Parse(textBox3.Text);
+            settings.IntervalInSeconds = int.Parse(listBox1.SelectedItem?.ToString());
+            settings.MovePixels = int.Parse(listBox2.SelectedItem?.ToString());
+            settings.pblacksize = int.Parse(listBox3.SelectedItem?.ToString());
             settings.ptotal = int.Parse(textBox4.Text);
             settings.pwhite = int.Parse(textBox5.Text);
             settings.AutoMode = auto;
@@ -317,26 +399,12 @@ namespace OledShiftPlus
             if (auto)
             {
                 auto = false;
-                button2.Text = "Automatico[OFF]";
-                timer1.Stop();
+                button2.Text = button2.Text.Replace("[ON]", "[OFF]");
             }
             else
             {
                 auto = true;
-                button2.Text = "Automatico[ON]";
-                int intervalInSeconds;
-                if (int.TryParse(textBox1.Text, out intervalInSeconds))
-                {
-                    // Converti i secondi in millisecondi per l'intervallo del timer
-                    timer1.Interval = intervalInSeconds * 1000;
-                    // Avvia il timer
-                    timer1.Start();
-                }
-                else
-                {
-                    MessageBox.Show("Inserisci un valore valido in secondi nella TextBox.");
-                }
-                timer1.Start();
+                button2.Text = button2.Text.Replace("[OFF]", "[ON]");
             }
         }
 
@@ -357,6 +425,9 @@ namespace OledShiftPlus
             else
             {
                 overlay = true;
+                overlayForm.ReloadOverlay(overlay);
+                overlayForm.Setpx(GetMovepx(listBox3.SelectedItem?.ToString()));
+                overlayForm.Setratio(GetMovepx(textBox4.Text), GetMovepx(textBox5.Text));
                 overlayForm.Show();
                 button3.Text = "OverLay [ON]";
             }
@@ -370,6 +441,18 @@ namespace OledShiftPlus
         [DllImport("USER32.DLL")]
         static extern bool IsWindowVisible(IntPtr hWnd);
 
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (int.TryParse(listBox1.SelectedItem.ToString(), out int intervalInSeconds))
+            {
+                // Converti i secondi in millisecondi per l'intervallo del timer
+                timer1.Interval = intervalInSeconds * 1000;
+            }
+            else
+            {
+                MessageBox.Show("Il valore selezionato non è un numero valido di secondi.");
+            }
+        }
     }
 
     // Classe per memorizzare la posizione delle finestre
@@ -445,7 +528,7 @@ namespace OledShiftPlus
 
         public void Setratio(int total, int white)
         {
-            ptotal = total;
+            ptotal = total+white;
             pwhite = white;
         }
 
