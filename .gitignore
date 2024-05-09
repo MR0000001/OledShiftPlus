@@ -5,3 +5,4 @@ packages
 
 # Eccetto i file .gitkeep, se necessario
 !.gitkeep
+!OledShiftPlus/Properties
