@@ -45,6 +45,12 @@ namespace OledShiftPlus
         [DllImport("user32.dll")]
         private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
 
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool IsWindowVisible(IntPtr hWnd);
+
+        
+
         // Definizione dei flag per SetWindowPos
         public const uint SWP_ASYNCWINDOWPOS = 0x4000;
         public const uint SWP_NOZORDER = 0x0004;
@@ -81,19 +87,9 @@ namespace OledShiftPlus
         }
 
         // Lista per memorizzare le posizioni delle finestre
-        private static List<WindowPosition> windowPositions = new List<WindowPosition>();
+        private static List<WindowPosition> userWndowPosition = new List<WindowPosition>();
+        private static List<WindowPosition> movedWndowPosition = new List<WindowPosition>();
 
-        static bool IsHwndPresent(List<WindowPosition> windowPositions, IntPtr hWnd)
-        {
-            foreach (var windowPosition in windowPositions)
-            {
-                if (windowPosition.Handle == hWnd)
-                {
-                    return true; // hWnd già presente
-                }
-            }
-            return false; // hWnd non presente
-        }
 
         // Contatore per tenere traccia dei movimenti consecutivi
         private static int consecutiveMoves = 0;
@@ -101,9 +97,82 @@ namespace OledShiftPlus
         // Funzione per riposizionare le finestre alle posizioni salvate
         public static void RestoreWindowPositions()
         {
-            foreach (WindowPosition windowPosition in Form1.windowPositions)
+            foreach (WindowPosition windowPosition in Form1.userWndowPosition)
             {
                 Form1.SetWindowPos(windowPosition.Handle, IntPtr.Zero, windowPosition.Left, windowPosition.Top, windowPosition.Right - windowPosition.Left, windowPosition.Bottom - windowPosition.Top, Form1.SWP_ASYNCWINDOWPOS | Form1.SWP_NOZORDER | Form1.SWP_NOACTIVATE);
+            }
+        }
+
+        private static void CheckIfWindowPositionChanged(IntPtr hWnd, RECT rect)
+        {
+            StringBuilder windowText = new StringBuilder(256);
+            GetWindowText(hWnd, windowText, 256);
+            if(windowText.ToString().Length > 2) { 
+                // verifico che la finestra sia stata registrata
+                WindowPosition windowPos = userWndowPosition.Find(wp => wp.Handle == hWnd);
+                if (windowPos != null)
+                {
+                    // verifico che sia stato registrato un movimento di finestra
+                    WindowPosition mwindowPos = movedWndowPosition.Find(wp => wp.Handle == hWnd);
+                    if (mwindowPos != null)
+                    {
+                        // verifico se la finestra attualmente si trova in una posizione diversa da quella dell' ultimo movimento
+                        if (mwindowPos.Left != rect.Left || mwindowPos.Top != rect.Top || mwindowPos.Right != rect.Right || mwindowPos.Bottom != rect.Bottom)
+                        {
+                            // aggiorno la registrazione posizione finestra con posizione definita dall'utente
+                            windowPos.Left = rect.Left;
+                            windowPos.Top = rect.Top;
+                            windowPos.Right = rect.Right;
+                            windowPos.Bottom = rect.Bottom;
+                            Console.WriteLine("Finestra "+ windowText.ToString()+" mossa dall'utente, salvo");
+                            Form1.consecutiveMoves = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    // If the window is not present in the list, add it
+                    userWndowPosition.Add(new WindowPosition
+                    {
+                        Handle = hWnd,
+                        Left = rect.Left,
+                        Right = rect.Right,
+                        Top = rect.Top,
+                        Bottom = rect.Bottom
+                    });
+                    Console.WriteLine("Finestra " + windowText.ToString() + " mai vista prima, salvo");
+                }
+            }
+        }
+
+        private static void UpdateWindowPosition(IntPtr hWnd, RECT rect)
+        {
+            // Update window position in the list
+            int index = movedWndowPosition.FindIndex(wp => wp.Handle == hWnd);
+
+            // If the element exists in the list, update it
+            if (index != -1)
+            {
+                movedWndowPosition[index] = new WindowPosition
+                {
+                    Handle = hWnd,
+                    Left = rect.Left,
+                    Right = rect.Right,
+                    Top = rect.Top,
+                    Bottom = rect.Bottom
+                };
+            }
+            else
+            {
+                // If the element doesn't exist, add it to the list
+                movedWndowPosition.Add(new WindowPosition
+                {
+                    Handle = hWnd,
+                    Left = rect.Left,
+                    Right = rect.Right,
+                    Top = rect.Top,
+                    Bottom = rect.Bottom
+                });
             }
         }
 
@@ -137,11 +206,11 @@ namespace OledShiftPlus
 
                 uint processId;
                 GetWindowThreadProcessId(hWnd, out processId);
+                StringBuilder windowText = new StringBuilder(256);
+                GetWindowText(hWnd, windowText, 256);
 
-                if (!Form1.IsWindowMaximized(hWnd))
+                if (!Form1.IsWindowMaximized(hWnd) && !Form1.IsMinimized(hWnd) && !Form1.IsIconic(hWnd) && windowText.ToString().Length > 2 )
                 {
-                    StringBuilder windowText = new StringBuilder(256);
-                    GetWindowText(hWnd, windowText, 256);
                     // Ottenere il processo associato alla finestra
                     Process process = Process.GetProcessById((int)processId);
 
@@ -160,25 +229,12 @@ namespace OledShiftPlus
                         continue;
                     }
 
-                    Form1.RECT rect;
-                    if (GetWindowRect(hWnd, out rect)) // Ottieni il rettangolo della finestra hWnd
+                    if (GetWindowRect(hWnd, out RECT rect)) // Ottieni il rettangolo della finestra hWnd
                     {
+                        if (rect.Top < 10 && rect.Left < 10)
+                            continue;
 
-                        bool isPresent = IsHwndPresent(windowPositions, hWnd);
-
-                        // Se non è presente, aggiungilo alla lista
-                        if (!isPresent)
-                        {
-                            windowPositions.Add(new WindowPosition
-                            {
-                                Handle = hWnd,
-                                Left = rect.Left,
-                                Right = rect.Right,
-                                Top = rect.Top,
-                                Bottom = rect.Bottom
-                            });
-                        }
-
+                        CheckIfWindowPositionChanged(hWnd, rect);
                         Random rand = new Random();
 
                         // Ottieni le dimensioni dello schermo
@@ -192,7 +248,15 @@ namespace OledShiftPlus
                         newLeft = Math.Max(screenBounds.Left, Math.Min(newLeft, screenBounds.Right - (rect.Right - rect.Left)));
                         newTop = Math.Max(screenBounds.Top, Math.Min(newTop, screenBounds.Bottom - (rect.Bottom - rect.Top)));
 
-                        Form1.SetWindowPos(hWnd, IntPtr.Zero, newLeft, newTop, rect.Right - rect.Left, rect.Bottom - rect.Top, Form1.SWP_ASYNCWINDOWPOS | Form1.SWP_NOZORDER | Form1.SWP_NOACTIVATE);
+                        
+                        //Console.WriteLine(windowName + " rect.left:" + rect.Left.ToString());
+                        Form1.SetWindowPos(hWnd, IntPtr.Zero, newLeft, newTop, rect.Right - rect.Left, rect.Bottom - rect.Top, Form1.SWP_NOZORDER | Form1.SWP_NOACTIVATE);
+                        if (GetWindowRect(hWnd, out rect)) // Ottieni il rettangolo della finestra hWnd
+                        {
+                            //Console.WriteLine(windowName + " rect.left:" + rect.Left.ToString());
+                            //Console.WriteLine(windowName + " newleft:" + newLeft.ToString());
+                            UpdateWindowPosition(hWnd, rect);
+                        }
                     }
                 }
             }
@@ -208,6 +272,9 @@ namespace OledShiftPlus
         }
 
 
+        [DllImport("user32.dll")]
+        public static extern bool IsIconic(IntPtr hWnd);
+
         static bool IsWindowMaximized(IntPtr hWnd)
         {
             WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
@@ -216,10 +283,28 @@ namespace OledShiftPlus
             return placement.showCmd == SW_SHOWMAXIMIZED;
         }
 
+        static bool IsMinimized(IntPtr hWnd)
+        {
+            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
+            placement.length = Marshal.SizeOf(placement);
+            GetWindowPlacement(hWnd, ref placement);
+            return placement.showCmd == SW_SHOWMINIMIZED; // 2 indica che la finestra è minimizzata
+        }
+
+        static bool IsIconized(IntPtr hWnd)
+        {
+            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
+            placement.length = Marshal.SizeOf(placement);
+            GetWindowPlacement(hWnd, ref placement);
+            return placement.showCmd == SW_SHOWICONIZED; // 2 indica che la finestra è minimizzata
+        }
+
         [DllImport("user32.dll")]
         static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
 
         const int SW_SHOWMAXIMIZED = 3;
+        const int SW_SHOWMINIMIZED = 2;
+        const int SW_SHOWICONIZED = 1;
 
         [StructLayout(LayoutKind.Sequential)]
         struct WINDOWPLACEMENT
@@ -437,9 +522,6 @@ namespace OledShiftPlus
         {
             SaveSettings();
         }
-
-        [DllImport("USER32.DLL")]
-        static extern bool IsWindowVisible(IntPtr hWnd);
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
