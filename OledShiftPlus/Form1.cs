@@ -2,14 +2,11 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Collections.Generic;
-using static OledShiftPlus.Form1;
 using System.Globalization;
 using System.Resources;
 using System.Threading;
@@ -21,6 +18,8 @@ namespace OledShiftPlus
     {
         // Dichiarazioni per l'overlay
         private OverlayForm overlayForm;
+        private static OverlayForm staticOverlayForm;
+        private static int movepx = 0;
         Boolean overlay = true;
 
         private string settingsFilePath = "settings.json";
@@ -43,13 +42,20 @@ namespace OledShiftPlus
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
         [DllImport("user32.dll")]
-        private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
-
-        [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool IsWindowVisible(IntPtr hWnd);
 
-        
+        [DllImport("user32.dll")]
+        public static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
 
         // Definizione dei flag per SetWindowPos
         public const uint SWP_ASYNCWINDOWPOS = 0x4000;
@@ -176,6 +182,59 @@ namespace OledShiftPlus
             }
         }
 
+        private static bool MoveWindow(IntPtr hWnd, IntPtr lParam)
+        {
+            IntPtr hWndOVL = Form1.staticOverlayForm.Handle;
+            string[] ignoredWindows = { "PowerToys", "Universal x86 Tuning Utilit", "Default IME", "DDE Server Window", "TouchPad", "MediaContextNotificationWindow", "PToyTrayIconWindow", "AMD:", "DDMExtensio", "OledShiftPlus", "DWM Notification Window" };
+
+            // Controlla se la finestra è l'overlay, se lo è, passa alla prossima iterazione
+            if (hWnd != hWndOVL && IsWindowVisible(hWnd) && !IsIconic(hWnd))
+            {
+                uint processId;
+                GetWindowThreadProcessId(hWnd, out processId);
+                StringBuilder windowText = new StringBuilder(256);
+                GetWindowText(hWnd, windowText, 256);
+
+                // Ottenere il processo associato alla finestra
+                Process process = Process.GetProcessById((int)processId);
+
+                string windowName = windowText.ToString();
+                if (windowName.Length > 2) {
+                    if (!Array.Exists(ignoredWindows, windowkeyname => windowName.Contains(windowkeyname)) && !Array.Exists(ignoredWindows, windowkeyname => process.ProcessName.Contains(windowkeyname)))
+                    {
+                        if (GetWindowRect(hWnd, out RECT rect)) // Ottieni il rettangolo della finestra hWnd
+                        {
+                            CheckIfWindowPositionChanged(hWnd, rect);
+                            Random rand = new Random();
+
+                            // Ottieni le dimensioni dello schermo
+                            Rectangle screenBounds = Screen.GetBounds(Point.Empty);
+
+                            // Calcola la nuova posizione in modo casuale all'interno dei limiti dello schermo
+                            int newLeft = rect.Left + rand.Next(-movepx, movepx + 1);
+                            int newTop = rect.Top + rand.Next(-movepx, movepx + 1);
+
+                            // Assicurati che la finestra rimanga all'interno dello schermo
+                            newLeft = Math.Max(screenBounds.Left, Math.Min(newLeft, screenBounds.Right - (rect.Right - rect.Left)));
+                            newTop = Math.Max(screenBounds.Top, Math.Min(newTop, screenBounds.Bottom - (rect.Bottom - rect.Top)));
+
+
+                            Console.WriteLine(windowName + " rect.left:" + rect.Left.ToString());
+                            Form1.SetWindowPos(hWnd, IntPtr.Zero, newLeft, newTop, rect.Right - rect.Left, rect.Bottom - rect.Top, Form1.SWP_NOZORDER | Form1.SWP_NOACTIVATE);
+                            if (GetWindowRect(hWnd, out rect)) // Ottieni il rettangolo della finestra hWnd
+                            {
+                                //Console.WriteLine(windowName + " rect.left:" + rect.Left.ToString());
+                                //Console.WriteLine(windowName + " newleft:" + newLeft.ToString());
+                                UpdateWindowPosition(hWnd, rect);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true; // Continua l'enumerazione
+        }
+
         // Main loop
         public static void MoveAllWindows(int movepx, OverlayForm overlayForm, bool writeoncewindowslog)
         {
@@ -191,141 +250,11 @@ namespace OledShiftPlus
             }
             //Console.WriteLine(Form1.consecutiveMoves);
 
-            IntPtr hWnd = IntPtr.Zero;
-            IntPtr hWndOVL = overlayForm.Handle;
-            string[] ignoredWindows = { "PowerToys", "Universal x86 Tuning Utilit", "Default IME", "DDE Server Window", "TouchPad", "MediaContextNotificationWindow", "PToyTrayIconWindow", "AMD:", "DDMExtensio", "OledShiftPlus", "DWM Notification Window" };
-
-            // Inizializza il StringBuilder per mantenere traccia dei log
-            StringBuilder logBuilder = new StringBuilder();
-
-            while ((hWnd = Form1.FindWindowEx(IntPtr.Zero, hWnd, null, null)) != IntPtr.Zero)
-            {
-                // Controlla se la finestra è l'overlay, se lo è, passa alla prossima iterazione
-                if (hWnd == hWndOVL)
-                    continue;
-
-                uint processId;
-                GetWindowThreadProcessId(hWnd, out processId);
-                StringBuilder windowText = new StringBuilder(256);
-                GetWindowText(hWnd, windowText, 256);
-
-                if (!Form1.IsWindowMaximized(hWnd) && !Form1.IsMinimized(hWnd) && !Form1.IsIconic(hWnd) && windowText.ToString().Length > 2 )
-                {
-                    // Ottenere il processo associato alla finestra
-                    Process process = Process.GetProcessById((int)processId);
-
-                    //Console.WriteLine(windowText.ToString());
-                    // Aggiungi il log al StringBuilder
-                    logBuilder.AppendLine(windowText.ToString());
-
-                    string windowName = windowText.ToString();
-                    if (Array.Exists(ignoredWindows, windowkeyname => windowName.Contains(windowkeyname)))
-                    {
-                        continue;
-                    }
-
-                    if (Array.Exists(ignoredWindows, windowkeyname => process.ProcessName.Contains(windowkeyname)))
-                    {
-                        continue;
-                    }
-
-                    if (GetWindowRect(hWnd, out RECT rect)) // Ottieni il rettangolo della finestra hWnd
-                    {
-                        if (rect.Top < 10 && rect.Left < 10)
-                            continue;
-
-                        CheckIfWindowPositionChanged(hWnd, rect);
-                        Random rand = new Random();
-
-                        // Ottieni le dimensioni dello schermo
-                        Rectangle screenBounds = Screen.GetBounds(Point.Empty);
-
-                        // Calcola la nuova posizione in modo casuale all'interno dei limiti dello schermo
-                        int newLeft = rect.Left + rand.Next(-movepx, movepx + 1);
-                        int newTop = rect.Top + rand.Next(-movepx, movepx + 1);
-
-                        // Assicurati che la finestra rimanga all'interno dello schermo
-                        newLeft = Math.Max(screenBounds.Left, Math.Min(newLeft, screenBounds.Right - (rect.Right - rect.Left)));
-                        newTop = Math.Max(screenBounds.Top, Math.Min(newTop, screenBounds.Bottom - (rect.Bottom - rect.Top)));
-
-                        
-                        //Console.WriteLine(windowName + " rect.left:" + rect.Left.ToString());
-                        Form1.SetWindowPos(hWnd, IntPtr.Zero, newLeft, newTop, rect.Right - rect.Left, rect.Bottom - rect.Top, Form1.SWP_NOZORDER | Form1.SWP_NOACTIVATE);
-                        if (GetWindowRect(hWnd, out rect)) // Ottieni il rettangolo della finestra hWnd
-                        {
-                            //Console.WriteLine(windowName + " rect.left:" + rect.Left.ToString());
-                            //Console.WriteLine(windowName + " newleft:" + newLeft.ToString());
-                            UpdateWindowPosition(hWnd, rect);
-                        }
-                    }
-                }
-            }
-
-
-            if (writeoncewindowslog)
-            {
-                writeoncewindowslog = false;
-                string logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "windows.log");
-                File.WriteAllText(logFilePath, logBuilder.ToString());
-            }
+            Form1.movepx = movepx;
+            Form1.staticOverlayForm = overlayForm;
+            EnumWindows(MoveWindow, IntPtr.Zero);
 
         }
-
-
-        [DllImport("user32.dll")]
-        public static extern bool IsIconic(IntPtr hWnd);
-
-        static bool IsWindowMaximized(IntPtr hWnd)
-        {
-            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
-            placement.length = Marshal.SizeOf(placement);
-            GetWindowPlacement(hWnd, ref placement);
-            return placement.showCmd == SW_SHOWMAXIMIZED;
-        }
-
-        static bool IsMinimized(IntPtr hWnd)
-        {
-            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
-            placement.length = Marshal.SizeOf(placement);
-            GetWindowPlacement(hWnd, ref placement);
-            return placement.showCmd == SW_SHOWMINIMIZED; // 2 indica che la finestra è minimizzata
-        }
-
-        static bool IsIconized(IntPtr hWnd)
-        {
-            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
-            placement.length = Marshal.SizeOf(placement);
-            GetWindowPlacement(hWnd, ref placement);
-            return placement.showCmd == SW_SHOWICONIZED; // 2 indica che la finestra è minimizzata
-        }
-
-        [DllImport("user32.dll")]
-        static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
-
-        const int SW_SHOWMAXIMIZED = 3;
-        const int SW_SHOWMINIMIZED = 2;
-        const int SW_SHOWICONIZED = 1;
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct WINDOWPLACEMENT
-        {
-            public int length;
-            public int flags;
-            public int showCmd;
-            public POINT minPosition;
-            public POINT maxPosition;
-            public RECT normalPosition;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct POINT
-        {
-            public int x;
-            public int y;
-        }
-
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
 
         public Form1()
         {
