@@ -10,3 +10,9 @@ dinamica dell'oled per cui il nero equivale allo spegnimento della celletta del 
 Vi serve solo OledShiftPlus.exe e settings.json che trovate nella cartella principale.
 
 Se avete domande cercatemi pure su Telegram "phpside".
+
+Usage:
+
+Download OledShiftPlus.exe & settings.json
+
+Run OledShiftPlus.exe
