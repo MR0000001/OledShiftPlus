@@ -20,6 +20,7 @@ namespace OledShiftPlus
         private OverlayForm overlayForm;
         private static OverlayForm staticOverlayForm;
         private static int movepx = 0;
+        private static int restorepos = 15;
         Boolean overlay = true;
 
         private string settingsFilePath = "settings.json";
@@ -86,6 +87,7 @@ namespace OledShiftPlus
             }
             
             if (auto){
+                Form1.restorepos = int.Parse(listBox4.SelectedItem?.ToString());
                 MoveAllWindows(GetMovepx(listBox2.Text), overlayForm, writeoncewindowslog);
             }
             
@@ -130,7 +132,7 @@ namespace OledShiftPlus
                             windowPos.Top = rect.Top;
                             windowPos.Right = rect.Right;
                             windowPos.Bottom = rect.Bottom;
-                            Console.WriteLine("Finestra "+ windowText.ToString()+" mossa dall'utente, salvo");
+                            //Console.WriteLine("Finestra "+ windowText.ToString()+" mossa dall'utente, salvo");
                             Form1.consecutiveMoves = 0;
                         }
                     }
@@ -146,7 +148,7 @@ namespace OledShiftPlus
                         Top = rect.Top,
                         Bottom = rect.Bottom
                     });
-                    Console.WriteLine("Finestra " + windowText.ToString() + " mai vista prima, salvo");
+                    //Console.WriteLine("Finestra " + windowText.ToString() + " mai vista prima, salvo");
                 }
             }
         }
@@ -219,7 +221,7 @@ namespace OledShiftPlus
                             newTop = Math.Max(screenBounds.Top, Math.Min(newTop, screenBounds.Bottom - (rect.Bottom - rect.Top)));
 
 
-                            Console.WriteLine(windowName + " rect.left:" + rect.Left.ToString());
+                            //Console.WriteLine(windowName + " rect.left:" + rect.Left.ToString());
                             Form1.SetWindowPos(hWnd, IntPtr.Zero, newLeft, newTop, rect.Right - rect.Left, rect.Bottom - rect.Top, Form1.SWP_NOZORDER | Form1.SWP_NOACTIVATE);
                             if (GetWindowRect(hWnd, out rect)) // Ottieni il rettangolo della finestra hWnd
                             {
@@ -238,7 +240,7 @@ namespace OledShiftPlus
         // Main loop
         public static void MoveAllWindows(int movepx, OverlayForm overlayForm, bool writeoncewindowslog)
         {
-            if (Form1.consecutiveMoves >= 5)
+            if (Form1.consecutiveMoves >= Form1.restorepos)
             {
                 //Console.WriteLine("Ripristino Posizione");
                 Form1.RestoreWindowPositions();
@@ -269,6 +271,7 @@ namespace OledShiftPlus
             overlayForm.ReloadOverlay(overlay);
             overlayForm.Setpx(GetMovepx(listBox3.SelectedItem?.ToString()));
             overlayForm.Setratio(GetMovepx(textBox4.Text), GetMovepx(textBox5.Text));
+            Form1.restorepos = int.Parse(listBox4.SelectedItem?.ToString());
             MoveAllWindows(GetMovepx(listBox2.Text), overlayForm, writeoncewindowslog);
             writeoncewindowslog = false;
         }
@@ -278,6 +281,7 @@ namespace OledShiftPlus
             PopolaListBox(listBox1, 120);
             PopolaListBox(listBox2, 50);
             PopolaListBox(listBox3, 15);
+            PopolaListBox(listBox4, 15);
 
             // Rileva la lingua del sistema
             CultureInfo systemCulture = CultureInfo.CurrentCulture;
@@ -334,6 +338,8 @@ namespace OledShiftPlus
             label1.Text = rm.GetString("label1", selectedCulture);
             label3.Text = rm.GetString("label3", selectedCulture);
             label4.Text = rm.GetString("label4", selectedCulture);
+            label6.Text = rm.GetString("label6", selectedCulture);
+            label7.Text = rm.GetString("label7", selectedCulture);
 
 
         }
@@ -368,11 +374,13 @@ namespace OledShiftPlus
             ApplySettingsListBoxs(listBox1, settings.IntervalInSeconds.ToString());
             ApplySettingsListBoxs(listBox2, settings.MovePixels.ToString());
             ApplySettingsListBoxs(listBox3, settings.pblacksize.ToString());
+            ApplySettingsListBoxs(listBox4, settings.restorepos.ToString());
 
             textBox4.Text = settings.ptotal.ToString();
             textBox5.Text = settings.pwhite.ToString();
             auto = settings.AutoMode;
             overlay = settings.OverlayEnabled;
+            restorepos = settings.restorepos;
             if (auto)
             {
                 button2.Text = button2.Text.Replace("[OFF]", "[ON]");
@@ -400,6 +408,7 @@ namespace OledShiftPlus
             settings.IntervalInSeconds = int.Parse(listBox1.SelectedItem?.ToString());
             settings.MovePixels = int.Parse(listBox2.SelectedItem?.ToString());
             settings.pblacksize = int.Parse(listBox3.SelectedItem?.ToString());
+            settings.restorepos = int.Parse(listBox4.SelectedItem?.ToString());
             settings.ptotal = int.Parse(textBox4.Text);
             settings.pwhite = int.Parse(textBox5.Text);
             settings.AutoMode = auto;
@@ -463,6 +472,11 @@ namespace OledShiftPlus
             {
                 MessageBox.Show("Il valore selezionato non è un numero valido di secondi.");
             }
+        }
+
+        private void label7_Click(object sender, EventArgs e)
+        {
+
         }
     }
 
@@ -581,6 +595,7 @@ namespace OledShiftPlus
     {
         public int IntervalInSeconds { get; set; }
         public int MovePixels { get; set; }
+        public int restorepos { get; set; }
         public int pblacksize { get; set; }
         public int ptotal { get; set; }
         public int pwhite { get; set; }

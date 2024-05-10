@@ -124,12 +124,18 @@
     <value>Automatico [OFF]</value>
   </data>
   <data name="label1" xml:space="preserve">
-    <value>Secondi</value>
+    <value>secondi</value>
   </data>
   <data name="label3" xml:space="preserve">
     <value>Dimensione Pixel Neri</value>
   </data>
   <data name="label4" xml:space="preserve">
     <value>Rapporto Pixel Neri a Pixel Schermo</value>
+  </data>
+  <data name="label6" xml:space="preserve">
+    <value>Ripristina posizione dopo</value>
+  </data>
+  <data name="label7" xml:space="preserve">
+    <value>movimenti</value>
   </data>
 </root>
