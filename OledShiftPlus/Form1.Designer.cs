@@ -31,256 +31,251 @@ namespace OledShiftPlus
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.button3 = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
-            this.textBox4 = new System.Windows.Forms.TextBox();
-            this.textBox5 = new System.Windows.Forms.TextBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.listBox3 = new System.Windows.Forms.ListBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.listBox1 = new System.Windows.Forms.ListBox();
-            this.listBox2 = new System.Windows.Forms.ListBox();
-            this.listBox4 = new System.Windows.Forms.ListBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.groupBox1.SuspendLayout();
-            this.SuspendLayout();
+            button1 = new Button();
+            button2 = new Button();
+            label1 = new Label();
+            label2 = new Label();
+            timer1 = new Timer(components);
+            button3 = new Button();
+            label3 = new Label();
+            textBox4 = new TextBox();
+            textBox5 = new TextBox();
+            groupBox1 = new GroupBox();
+            label5 = new Label();
+            listBox3 = new ListBox();
+            label4 = new Label();
+            listBox1 = new ListBox();
+            listBox2 = new ListBox();
+            listBox4 = new ListBox();
+            label6 = new Label();
+            label7 = new Label();
+            groupBox1.SuspendLayout();
+            SuspendLayout();
             // 
             // button1
             // 
-            this.button1.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Gold;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.ForeColor = System.Drawing.Color.Crimson;
-            this.button1.Location = new System.Drawing.Point(12, 12);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(94, 61);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Move Windows";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            button1.FlatAppearance.MouseOverBackColor = Color.Gold;
+            button1.FlatStyle = FlatStyle.Flat;
+            button1.ForeColor = Color.Crimson;
+            button1.Location = new Point(12, 12);
+            button1.Name = "button1";
+            button1.Size = new Size(94, 61);
+            button1.TabIndex = 0;
+            button1.Text = "Move Windows";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // button2
             // 
-            this.button2.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Gold;
-            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button2.ForeColor = System.Drawing.Color.Crimson;
-            this.button2.Location = new System.Drawing.Point(112, 12);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(143, 61);
-            this.button2.TabIndex = 1;
-            this.button2.Text = "Automatic Move [ON]";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            button2.FlatAppearance.MouseOverBackColor = Color.Gold;
+            button2.FlatStyle = FlatStyle.Flat;
+            button2.ForeColor = Color.Crimson;
+            button2.Location = new Point(112, 12);
+            button2.Name = "button2";
+            button2.Size = new Size(143, 61);
+            button2.TabIndex = 1;
+            button2.Text = "Automatic Move [ON]";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.ForeColor = System.Drawing.Color.Crimson;
-            this.label1.Location = new System.Drawing.Point(311, 20);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(59, 16);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "seconds";
+            label1.AutoSize = true;
+            label1.ForeColor = Color.Crimson;
+            label1.Location = new Point(311, 20);
+            label1.Name = "label1";
+            label1.Size = new Size(62, 20);
+            label1.TabIndex = 3;
+            label1.Text = "seconds";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.ForeColor = System.Drawing.Color.Crimson;
-            this.label2.Location = new System.Drawing.Point(311, 46);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(42, 16);
-            this.label2.TabIndex = 5;
-            this.label2.Text = "pixels";
+            label2.AutoSize = true;
+            label2.ForeColor = Color.Crimson;
+            label2.Location = new Point(311, 46);
+            label2.Name = "label2";
+            label2.Size = new Size(47, 20);
+            label2.TabIndex = 5;
+            label2.Text = "pixels";
             // 
             // timer1
             // 
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            timer1.Tick += timer1_Tick;
             // 
             // button3
             // 
-            this.button3.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Gold;
-            this.button3.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button3.Location = new System.Drawing.Point(6, 21);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(143, 29);
-            this.button3.TabIndex = 6;
-            this.button3.Text = "OverLay [ON]";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            button3.FlatAppearance.MouseOverBackColor = Color.Gold;
+            button3.FlatStyle = FlatStyle.Flat;
+            button3.Location = new Point(6, 21);
+            button3.Name = "button3";
+            button3.Size = new Size(143, 29);
+            button3.TabIndex = 6;
+            button3.Text = "OverLay [ON]";
+            button3.UseVisualStyleBackColor = true;
+            button3.Click += button3_Click;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(209, 29);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(102, 16);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "Black Pixel Size";
+            label3.AutoSize = true;
+            label3.Location = new Point(209, 25);
+            label3.Name = "label3";
+            label3.Size = new Size(110, 20);
+            label3.TabIndex = 8;
+            label3.Text = "Black Pixel Size";
             // 
             // textBox4
             // 
-            this.textBox4.BackColor = System.Drawing.Color.Black;
-            this.textBox4.ForeColor = System.Drawing.Color.Crimson;
-            this.textBox4.Location = new System.Drawing.Point(10, 80);
-            this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(38, 22);
-            this.textBox4.TabIndex = 9;
-            this.textBox4.Text = "1";
+            textBox4.BackColor = Color.Black;
+            textBox4.ForeColor = Color.Crimson;
+            textBox4.Location = new Point(10, 80);
+            textBox4.Name = "textBox4";
+            textBox4.Size = new Size(38, 27);
+            textBox4.TabIndex = 9;
+            textBox4.Text = "1";
             // 
             // textBox5
             // 
-            this.textBox5.BackColor = System.Drawing.Color.Black;
-            this.textBox5.ForeColor = System.Drawing.Color.Crimson;
-            this.textBox5.Location = new System.Drawing.Point(70, 80);
-            this.textBox5.Name = "textBox5";
-            this.textBox5.Size = new System.Drawing.Size(38, 22);
-            this.textBox5.TabIndex = 10;
-            this.textBox5.Text = "100";
+            textBox5.BackColor = Color.Black;
+            textBox5.ForeColor = Color.Crimson;
+            textBox5.Location = new Point(70, 80);
+            textBox5.Name = "textBox5";
+            textBox5.Size = new Size(38, 27);
+            textBox5.TabIndex = 10;
+            textBox5.Text = "100";
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.label5);
-            this.groupBox1.Controls.Add(this.listBox3);
-            this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Controls.Add(this.button3);
-            this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Controls.Add(this.textBox5);
-            this.groupBox1.Controls.Add(this.textBox4);
-            this.groupBox1.ForeColor = System.Drawing.Color.Crimson;
-            this.groupBox1.Location = new System.Drawing.Point(12, 106);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(370, 110);
-            this.groupBox1.TabIndex = 11;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "OverLay Feature";
+            groupBox1.Controls.Add(label5);
+            groupBox1.Controls.Add(listBox3);
+            groupBox1.Controls.Add(label4);
+            groupBox1.Controls.Add(button3);
+            groupBox1.Controls.Add(label3);
+            groupBox1.Controls.Add(textBox5);
+            groupBox1.Controls.Add(textBox4);
+            groupBox1.ForeColor = Color.Crimson;
+            groupBox1.Location = new Point(12, 106);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(370, 110);
+            groupBox1.TabIndex = 11;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "OverLay Feature";
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
-            this.label5.Font = new System.Drawing.Font("Impact", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(53, 79);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(13, 19);
-            this.label5.TabIndex = 15;
-            this.label5.Text = ":";
+            label5.AutoSize = true;
+            label5.Font = new Font("Impact", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label5.Location = new Point(53, 79);
+            label5.Name = "label5";
+            label5.Size = new Size(13, 19);
+            label5.TabIndex = 15;
+            label5.Text = ":";
             // 
             // listBox3
             // 
-            this.listBox3.BackColor = System.Drawing.Color.Black;
-            this.listBox3.ForeColor = System.Drawing.Color.Crimson;
-            this.listBox3.FormattingEnabled = true;
-            this.listBox3.ItemHeight = 16;
-            this.listBox3.Location = new System.Drawing.Point(155, 27);
-            this.listBox3.Name = "listBox3";
-            this.listBox3.ScrollAlwaysVisible = true;
-            this.listBox3.Size = new System.Drawing.Size(48, 20);
-            this.listBox3.TabIndex = 14;
+            listBox3.BackColor = Color.Black;
+            listBox3.ForeColor = Color.Crimson;
+            listBox3.FormattingEnabled = true;
+            listBox3.Location = new Point(155, 23);
+            listBox3.Name = "listBox3";
+            listBox3.ScrollAlwaysVisible = true;
+            listBox3.Size = new Size(48, 24);
+            listBox3.TabIndex = 14;
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(7, 57);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(115, 16);
-            this.label4.TabIndex = 11;
-            this.label4.Text = "Black Pixels Ratio";
+            label4.AutoSize = true;
+            label4.Location = new Point(7, 57);
+            label4.Name = "label4";
+            label4.Size = new Size(124, 20);
+            label4.TabIndex = 11;
+            label4.Text = "Black Pixels Ratio";
             // 
             // listBox1
             // 
-            this.listBox1.BackColor = System.Drawing.Color.Black;
-            this.listBox1.ForeColor = System.Drawing.Color.Crimson;
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.ItemHeight = 16;
-            this.listBox1.Location = new System.Drawing.Point(261, 17);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.ScrollAlwaysVisible = true;
-            this.listBox1.Size = new System.Drawing.Size(49, 20);
-            this.listBox1.TabIndex = 12;
-            this.listBox1.SelectedIndexChanged += new System.EventHandler(this.listBox1_SelectedIndexChanged);
+            listBox1.BackColor = Color.Black;
+            listBox1.ForeColor = Color.Crimson;
+            listBox1.FormattingEnabled = true;
+            listBox1.Location = new Point(261, 17);
+            listBox1.Name = "listBox1";
+            listBox1.ScrollAlwaysVisible = true;
+            listBox1.Size = new Size(49, 24);
+            listBox1.TabIndex = 12;
+            listBox1.SelectedIndexChanged += listBox1_SelectedIndexChanged;
             // 
             // listBox2
             // 
-            this.listBox2.BackColor = System.Drawing.Color.Black;
-            this.listBox2.ForeColor = System.Drawing.Color.Crimson;
-            this.listBox2.FormattingEnabled = true;
-            this.listBox2.ItemHeight = 16;
-            this.listBox2.Location = new System.Drawing.Point(262, 45);
-            this.listBox2.Name = "listBox2";
-            this.listBox2.ScrollAlwaysVisible = true;
-            this.listBox2.Size = new System.Drawing.Size(48, 20);
-            this.listBox2.TabIndex = 13;
+            listBox2.BackColor = Color.Black;
+            listBox2.ForeColor = Color.Crimson;
+            listBox2.FormattingEnabled = true;
+            listBox2.Location = new Point(262, 45);
+            listBox2.Name = "listBox2";
+            listBox2.ScrollAlwaysVisible = true;
+            listBox2.Size = new Size(48, 24);
+            listBox2.TabIndex = 13;
             // 
             // listBox4
             // 
-            this.listBox4.BackColor = System.Drawing.Color.Black;
-            this.listBox4.ForeColor = System.Drawing.Color.Crimson;
-            this.listBox4.FormattingEnabled = true;
-            this.listBox4.ItemHeight = 16;
-            this.listBox4.Location = new System.Drawing.Point(261, 76);
-            this.listBox4.Name = "listBox4";
-            this.listBox4.ScrollAlwaysVisible = true;
-            this.listBox4.Size = new System.Drawing.Size(49, 20);
-            this.listBox4.TabIndex = 14;
+            listBox4.BackColor = Color.Black;
+            listBox4.ForeColor = Color.Crimson;
+            listBox4.FormattingEnabled = true;
+            listBox4.Location = new Point(261, 76);
+            listBox4.Name = "listBox4";
+            listBox4.ScrollAlwaysVisible = true;
+            listBox4.Size = new Size(49, 24);
+            listBox4.TabIndex = 14;
             // 
             // label6
             // 
-            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label6.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.label6.ForeColor = System.Drawing.Color.Crimson;
-            this.label6.Location = new System.Drawing.Point(118, 79);
-            this.label6.Name = "label6";
-            this.label6.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.label6.Size = new System.Drawing.Size(143, 16);
-            this.label6.TabIndex = 15;
-            this.label6.Text = "Restore position after";
-            this.label6.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            label6.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            label6.BackColor = SystemColors.ActiveCaptionText;
+            label6.ForeColor = Color.Crimson;
+            label6.Location = new Point(118, 79);
+            label6.Name = "label6";
+            label6.RightToLeft = RightToLeft.No;
+            label6.Size = new Size(143, 16);
+            label6.TabIndex = 15;
+            label6.Text = "Restore position after";
+            label6.TextAlign = ContentAlignment.TopRight;
             // 
             // label7
             // 
-            this.label7.AutoSize = true;
-            this.label7.ForeColor = System.Drawing.Color.Crimson;
-            this.label7.Location = new System.Drawing.Point(311, 78);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(77, 16);
-            this.label7.TabIndex = 16;
-            this.label7.Text = "movements";
-            this.label7.Click += new System.EventHandler(this.label7_Click);
+            label7.AutoSize = true;
+            label7.ForeColor = Color.Crimson;
+            label7.Location = new Point(311, 78);
+            label7.Name = "label7";
+            label7.Size = new Size(86, 20);
+            label7.TabIndex = 16;
+            label7.Text = "movements";
+            label7.Click += label7_Click;
             // 
             // Form1
             // 
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ClientSize = new System.Drawing.Size(394, 224);
-            this.Controls.Add(this.label7);
-            this.Controls.Add(this.label6);
-            this.Controls.Add(this.listBox4);
-            this.Controls.Add(this.listBox2);
-            this.Controls.Add(this.listBox1);
-            this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "Form1";
-            this.ShowIcon = false;
-            this.Text = "OledShiftPlus";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
-            this.Load += new System.EventHandler(this.Form1_Load);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleMode = AutoScaleMode.None;
+            BackColor = SystemColors.ActiveCaptionText;
+            ClientSize = new Size(394, 224);
+            Controls.Add(label7);
+            Controls.Add(label6);
+            Controls.Add(listBox4);
+            Controls.Add(listBox2);
+            Controls.Add(listBox1);
+            Controls.Add(groupBox1);
+            Controls.Add(label2);
+            Controls.Add(label1);
+            Controls.Add(button2);
+            Controls.Add(button1);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Name = "Form1";
+            ShowIcon = false;
+            Text = "OledShiftPlus";
+            FormClosing += Form1_FormClosing;
+            Load += Form1_Load;
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
